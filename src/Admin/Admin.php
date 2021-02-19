@@ -12,7 +12,7 @@ class Admin extends WPPlugin
     /**
      * Admin part of the plugin initializes some stuffs according to the context...
      */
-    public function __construct()
+    protected function __construct()
     {
         if( ! is_admin() )
             return ;
@@ -83,7 +83,8 @@ class Admin extends WPPlugin
 
         wp_localize_script( $name, 'mpSegEx',
         [
-            'mp_token' => '1234',
+            'segmentType' => \MailPoet\DynamicSegments\Filters\CustomFieldFilter::SEGMENT_TYPE ,
+            'newsletter_id' => 3,
         ]);
     }
 }

@@ -159,6 +159,11 @@ Segmentation.CustomField = function()
         return false ;
     }
 
+    this.childValueChanged = function()
+    {
+        self.valid();
+    }
+
     this.draw = function( $parent )
     {
         $container = $('<div class="customfield"><div class="operator operator-or">OU</div></div>')
@@ -202,18 +207,18 @@ Segmentation.CustomField = function()
         switch( z_field.type )
         {
             case 'checkbox':
-                field = (new Segmentation.CustomField.Checkbox( z_field ));
+                field = (new Segmentation.CustomField.Checkbox( z_field, self.childValueChanged ));
                 field.draw($parent);
                 break;
             case 'select':
-                field = (new Segmentation.CustomField.Select( z_field ));
+                field = (new Segmentation.CustomField.Select( z_field, self.childValueChanged ));
                 field.draw($parent);
                 break;
             default:
                 throw new Error( 'Field type "'+z_field.type+'" not implemented !');
                 break;
         }
-        self.valid();
+        $container.removeClass('error');
     }
 }
 
@@ -226,12 +231,10 @@ Segmentation.CustomField.Radio = function()
 
 }
 
-Segmentation.CustomField.Select = function( field )
+Segmentation.CustomField.Select = function( field, valueChanged )
 {
     var $ = jQuery ;
     var $container ;
-
-    console.debug( field );
 
     this.getField = function()
     {
@@ -268,19 +271,22 @@ Segmentation.CustomField.Select = function( field )
         for( var i in values )
         {
             var name = name_prefix +'_'+i ;
-            $container.append(
-                ' <label for="'+name+'">'+values[i].value+':</label>'
-                +' <input type="checkbox" id="'+name+'" value="'+values[i].value+'" />'    
-            );
+            $('<label for="'+name+'">'+values[i].value+':</label>')
+                .appendTo( $container );
+            $('<input type="checkbox" id="'+name+'" value="'+values[i].value+'" />')
+                .appendTo( $container );
         }
+        $('input:checkbox', $container).change( function()
+        {
+            if( valueChanged !== undefined )
+                valueChanged();
+        });
     }
 }
 
 Segmentation.CustomField.Checkbox = function( field )
 {
     var $ = jQuery ;
-
-    console.debug( field );
 
     this.getField = function()
     {
@@ -379,7 +385,7 @@ jQuery(function($)
         })
         .done(function( data )
         {
-            console.debug('ajax success.', data);
+            console.debug('ajax success.', ajax_data.action, data);
             Segmentation.cfData = data ;
             segmentation = new Segmentation( $('.segmentation', $modal) );
             segmentation.draw();
@@ -390,7 +396,6 @@ jQuery(function($)
         })
         .always(function()
         {
-            console.debug('ajax done.')
         });
 
     function create_modal()
@@ -435,21 +440,16 @@ jQuery(function($)
 
     function createMpSegment()
     {
-        /*
-        $('.segment', $modal ).each( function()
-        {
-            console.debug( this );
-            $('.customfield', $(this) ).each( function()
-            {
-                console.debug( this );
-            });    
-        });
-        */
-
         var fieldsValid = true ;
+        var segments_data = [];
 
+        // Iterate segments then their customFields,
+        // check if they are valid,
+        // and fill segments_data.
         segmentation.getSegments().forEach( function(seg, idx)
         {
+            var segment = [];
+            segments_data.push( segment );
             console.debug('Segment', idx, seg);
             seg.getFields().forEach( function(field, idx)
             {
@@ -459,31 +459,37 @@ jQuery(function($)
                     return ;
                 }
                 var cf = field.getField() ;
-                var f = (cf ? cf.getField() : null);
-                var v = (cf ? cf.getValue() : null);
-                console.debug('Field', idx, cf, f, v );
-                //field.getField();
+                segment.push({
+                    cf_id: cf.getField().id,
+                    values: cf.getValue(),
+                });
             });
         });
 
         if( ! fieldsValid )
             return ;
+console.debug('segments_data', segments_data );
 
-        var segment_name = 'Essai';
+        var segment_name = 'DF-'+new Date().valueOf();
         var segment_desc = 'Bla bla bla';
+
+        var token = window.mailpoet_token ;
+
+        var segmentType = mpSegEx.segmentType ;
+        var newsletter_id = mpSegEx.newsletter_id ;
 
         var ajax_data = {
             action: 'mailpoet',
             api_version: 'v1',
-            token: mpSegEx.mp_token,
+            token: token,
             endpoint: 'dynamic_segments',
             method: 'save',
             data: {
-                segmentType: 'email',
-                action: 'opened',
-                newsletter_id: '3',
                 name: segment_name,
-                description: segment_desc
+                newsletter_id: newsletter_id,
+                description: segment_desc,
+                segmentType: segmentType,
+                segments: segments_data,
             }
         };
         $.ajax( ajaxurl,
@@ -502,10 +508,10 @@ jQuery(function($)
             .fail(function( jqXHR, textStatus, errorThrown )
             {
                 console.error('ajax fail', textStatus, errorThrown);
+                alert( 'Error:' + errorThrown );
             })
             .always(function()
             {
-                console.debug('ajax done.')
             });
 
     }
