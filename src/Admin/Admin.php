@@ -83,6 +83,7 @@ class Admin extends WPPlugin
 
         wp_localize_script( $name, 'mpSegEx',
         [
+            'mp_token' => '1234',
         ]);
     }
 }

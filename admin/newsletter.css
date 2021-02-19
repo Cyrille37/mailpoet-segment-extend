@@ -16,6 +16,10 @@
     padding: 1em .5em;
     position: relative; /* important pour .operator */
 }
+#mpsegex .segmentation .segment .customfield.error {
+    border: orangered solid 2px ;
+    background-color: white ;
+}
 
 #mpsegex .segmentation .segment .customfield p {
     margin: .6em 0;
