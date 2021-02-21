@@ -7,13 +7,11 @@ console.debug('newsletter.js');
 
 jQuery(function($)
 {
-    var segmentation ;
-
     //console.debug('ajaxurl: ' + ajaxurl);
     console.debug('mpSegEx: ', mpSegEx);
     var segmentType = mpSegEx.segmentType ;
     var newsletter_id = mpSegEx.newsletter_id ;
-
+    var nl_lists_ids = mpSegEx.nl_lists_ids ;
 /*
     // Search for
     // <button type="button" class="mailpoet-button" data-automation-id="email-submit"><span>Send</span></button>
@@ -23,7 +21,86 @@ jQuery(function($)
     console.debug('newsletter.js', 'sendBtn', $sendBtn.length);
 */
 
-segmentation = new Segmentation( segmentType,  newsletter_id);
+/*
+    console.debug( window.location.hash );
+    $(window).on('hashchange', function(ev) {
+    console.debug('hashchange', ev);
+    });
+*/
 
+/*
+"Select2" component : https://select2.org/programmatic-control/add-select-clear-items
+*/
 
+    var $mpnl = $('#mailpoet_newsletter');
+
+    /**
+     * Observe the DOM to wait MailPoet React initialization,
+     * then call hackNl().
+     */
+    new MutationObserver(function( mutations )
+        {
+            var self = this ;
+            mutations.forEach(function( mutation )
+            {
+                //var newNodes = mutation.addedNodes; // DOM NodeList
+                //if( newNodes == null )
+                //    return ;
+                jQuery( mutation.addedNodes ).each(function()
+                {
+                    if( jQuery( this ).hasClass( "form-field-row-segments" ) )
+                    {
+                        self.disconnect();
+                        hackNl();
+                    }
+                });
+            });    
+
+        }).observe( $mpnl[0], {
+            // https://developer.mozilla.org/fr/docs/Web/API/MutationObserver
+            childList: true, subtree: true,
+        });
+
+    /**
+     */
+    function hackNl()
+    {
+        console.debug('hackNl');
+
+        // Remove unwanted segments.
+        var $mp_segments = $('#mailpoet_segments');
+        $mp_segments.find('option').each(function(idx,el)
+        {
+            var $el = $(el);
+            if( nl_lists_ids.indexOf( $el.val() ) < 0 )
+                $el.remove();
+        });
+        $mp_segments.trigger('change');
+
+        // Button to create a Segmentation
+        var $btNewSeg = $('<button type="button" class="mailpoet-button" disabled>Créer une segmentation</button>')
+            .on('click', function()
+            {
+                // Launch Segmentation Dialog:
+                new Segmentation( segmentType,  newsletter_id, {segmentNamePrefix: mpSegEx.segmentNamePrefix });
+            })
+            .appendTo( $('.form-field-row-segments', $mpnl ));
+
+        // Disable or not the button upon newsletter segements selection
+        $mp_segments
+            .on('select2:select', function( ev )
+            {
+                var data = ev.params.data;
+                console.debug(data);
+                $btNewSeg.prop('disabled',false);
+            })
+            .on('select2:clear', function( ev )
+            {
+                var data = ev.params.data;
+                console.debug(data);
+                $btNewSeg.prop('disabled',true);
+            });
+
+    }
+        
 });

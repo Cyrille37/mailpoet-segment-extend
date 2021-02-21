@@ -6,9 +6,13 @@ require_once( __DIR__.'/../WPPlugin.php');
 
 use Artefacts\Mailpoet\Segment\WPPlugin;
 use MailPoet\Models\CustomField ;
+use MailPoet\Models\Segment;
+use MailPoet\Entities\SegmentEntity ;
 
 class Admin extends WPPlugin
 {
+    const SEG_NAME_PREFIX = 'DF-';
+
     /**
      * Admin part of the plugin initializes some stuffs according to the context...
      */
@@ -59,6 +63,20 @@ class Admin extends WPPlugin
 
     public function wp_admin_enqueue_scripts_newsletter()
     {
+        $mp = \MailPoet\API\API::MP('v1');
+
+        $nl_lists_ids = [] ;
+    
+        foreach( Segment
+                    ::whereIn('type', [SegmentEntity::TYPE_DEFAULT, SegmentEntity::TYPE_DYNAMIC])
+                    ->whereNull('deleted_at')
+            ->findArray() as $nl )
+        {
+            if( substr($nl['name'], 0, strlen(self::SEG_NAME_PREFIX)) == self::SEG_NAME_PREFIX )
+                continue ;
+            $nl_lists_ids[] = $nl['id'] ;
+        }
+
         $wp_scripts = wp_scripts();
 
         $name = self::PLUGIN_NAME.'-newsletter' ;
@@ -87,7 +105,9 @@ class Admin extends WPPlugin
         wp_localize_script( $name, 'mpSegEx',
         [
             'segmentType' => \MailPoet\DynamicSegments\Filters\CustomFieldFilter::SEGMENT_TYPE ,
+            'segmentNamePrefix' => self::SEG_NAME_PREFIX,
             'newsletter_id' => 3,
+            'nl_lists_ids' => $nl_lists_ids,
         ]);
     }
 }

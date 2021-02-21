@@ -1,6 +1,19 @@
 @charset "utf-8";
 /**
- * CSS styles for "#mpsegex" dialogbox
+ * CSS styles for "mailpoet-segment-extend" plugin
+ */
+
+/**
+ * Hacked Newsletter page
+ */
+
+#mailpoet_newsletter .mailpoet-button:disabled {
+    background: #fdc1a4;
+    cursor: not-allowed;
+}
+
+/**
+ * Segmentation popup
  */
 
 #mpsegex .segmentation .segment {

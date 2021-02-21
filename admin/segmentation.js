@@ -3,10 +3,20 @@
  */
 "use strict";
 
-var Segmentation = function( segmentType,  newsletter_id )
+var Segmentation = function( segmentType,  newsletter_id, options )
 {
     var $ = jQuery ;
     var self = this ;
+
+    var config = {
+        segmentNamePrefix: 'DF-',
+    };
+    if( options )
+        for( var i in options )
+        {
+            console.debug( i, options[i] );
+            config[i] = options[i] ;
+        };
 
     /**
      * Un ensemble de segments
@@ -169,7 +179,7 @@ var Segmentation = function( segmentType,  newsletter_id )
             return ;
         //console.debug('segments_data', segments_data );
 
-        var segment_name = 'DF-'+new Date().valueOf();
+        var segment_name = config.segmentNamePrefix + new Date().valueOf();
         var segment_desc = 'Bla bla bla';
 
         var token = window.mailpoet_token ;
@@ -332,7 +342,6 @@ Segmentation.CustomField = function()
                 createField( f, $params );
             });
         $selector.append('<option value="" disabled selected hidden>Choisir une donnée</option>');
-console.debug('Segmentation.cfData', Segmentation.cfData);
         $.each( Segmentation.cfData, function( k, v )
         {
             $selector.append($('<option>',
