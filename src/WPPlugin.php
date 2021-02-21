@@ -29,7 +29,7 @@ class WPPlugin
         self::$debug = (defined('WP_DEBUG') ? WP_DEBUG : false);
         if( self::$debug && $this->ignoreDebug() )
             self::$debug = false ;
-/*
+
         if( self::$debug )
             self::debug(__METHOD__,
                 'method:', $_SERVER['REQUEST_METHOD'] ?? null,
@@ -39,7 +39,7 @@ class WPPlugin
                 //'globals', var_export($GLOBALS,true),
                 'request', var_export($_REQUEST,true)
             );
-*/
+
         self::$plugin_dir = plugin_dir_path( __DIR__.'/../README.md' );
         self::$plugin_dir_url = plugin_dir_url( __DIR__.'/../README.md' );
         self::$asset_url_public = self::$plugin_dir_url.'public/';

@@ -27,12 +27,11 @@ class Admin extends WPPlugin
         else if( is_blog_admin() )
         {
             if( ($_REQUEST['page'] ?? null) == 'mailpoet-newsletters'
-            && ! isset($_REQUEST['endpoint'])
-            //&& isset($_REQUEST['id'])
-            //&& intval($_REQUEST['id']) > 0
+                && ! isset($_REQUEST['endpoint'])
             )
             {
                 // Hack the mailpoet newsletter page
+                // Mail steps (routes) are managed at client site, with React.
                 add_action( 'admin_enqueue_scripts',
                     array( $this, 'wp_admin_enqueue_scripts_newsletter' ),
                     100 );
@@ -77,8 +76,12 @@ class Admin extends WPPlugin
             self::VERSION, 'all');
         wp_enqueue_style( $name );
 
-        wp_register_script( $name, self::$asset_url_admin . 'newsletter.js',
+        wp_register_script( $name.'-segmentation', self::$asset_url_admin . 'segmentation.js',
             ['jquery','jquery-ui-core','jquery-ui-dialog'], self::VERSION, true );
+        wp_enqueue_script( $name );
+
+        wp_register_script( $name, self::$asset_url_admin . 'newsletter.js',
+            [$name.'-segmentation'], self::VERSION, true );
         wp_enqueue_script( $name );
 
         wp_localize_script( $name, 'mpSegEx',
