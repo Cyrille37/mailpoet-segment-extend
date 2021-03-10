@@ -173,7 +173,6 @@ var Segmentation = function( segmentationCallback, options )
      */
     this.saveSegmentation = function()
     {
-        var fieldsValid = true ;
         var segments_data = [];
 
         var segment_name = $('.segment_name', $('#mpsegex')).val();
@@ -188,6 +187,8 @@ var Segmentation = function( segmentationCallback, options )
         // Iterate segments then their customFields,
         // check if they are valid,
         // and fill segments_data.
+        var fieldsValid = true ;
+
         self.getSegments().forEach( function(seg, idx)
         {
             var segment = [];
@@ -421,11 +422,18 @@ Segmentation.CustomField = function()
 
 Segmentation.CustomField.Text = function()
 {
+    this.draw = function( $parent )
+    {
+        throw new TypeError('NOT IMPLEMENTED');
+    }
 }
 
 Segmentation.CustomField.Radio = function()
 {
-
+    this.draw = function( $parent )
+    {
+        throw new TypeError('NOT IMPLEMENTED');
+    }
 }
 
 Segmentation.CustomField.Select = function( field, valueChanged )
