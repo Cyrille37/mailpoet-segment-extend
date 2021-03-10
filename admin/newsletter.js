@@ -67,7 +67,10 @@ jQuery(function($)
     {
         console.debug('hackNl');
 
-        // Remove unwanted segments.
+        /*
+        Remove unwanted segments.
+        "nl_lists_ids" built by Artefacts\Mailpoet\Segment\Admin\Admin::wp_admin_enqueue_scripts_newsletter()
+        */
         var $mp_segments = $('#mailpoet_segments');
         $mp_segments.find('option').each(function(idx,el)
         {
@@ -92,14 +95,20 @@ jQuery(function($)
             {
                 var data = ev.params.data;
                 console.debug(data);
-                $btNewSeg.prop('disabled',false);
+                console.debug( 'select() option:selected:', $mp_segments.find('option:selected').length );
+                if( $mp_segments.find('option:selected').length == 1 )
+                    $btNewSeg.prop('disabled',false);
+                else
+                    $btNewSeg.prop('disabled',true);
             })
-            .on('select2:clear', function( ev )
+            .on('select2:unselect', function( ev )
             {
-                var data = ev.params.data;
-                console.debug(data);
-                $btNewSeg.prop('disabled',true);
-            });
+                console.debug( 'unselect() option:selected:', $mp_segments.find('option:selected').length );
+                if( $mp_segments.find('option:selected').length == 1 )
+                    $btNewSeg.prop('disabled',false);
+                else
+                    $btNewSeg.prop('disabled',true);
+            })
 
     }
         

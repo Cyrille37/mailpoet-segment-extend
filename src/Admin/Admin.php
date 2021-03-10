@@ -65,8 +65,11 @@ class Admin extends WPPlugin
     {
         $mp = \MailPoet\API\API::MP('v1');
 
+        /**
+         * Les listes et segments "normaux" : on vire ceux générés par ce plugin.
+         * @var Array $nl_lists_ids
+         */
         $nl_lists_ids = [] ;
-    
         foreach( Segment
                     ::whereIn('type', [SegmentEntity::TYPE_DEFAULT, SegmentEntity::TYPE_DYNAMIC])
                     ->whereNull('deleted_at')
@@ -106,7 +109,7 @@ class Admin extends WPPlugin
         [
             'segmentType' => \MailPoet\DynamicSegments\Filters\CustomFieldFilter::SEGMENT_TYPE ,
             'segmentNamePrefix' => self::SEG_NAME_PREFIX,
-            'newsletter_id' => 3,
+            'newsletter_id' => 5,
             'nl_lists_ids' => $nl_lists_ids,
         ]);
     }
