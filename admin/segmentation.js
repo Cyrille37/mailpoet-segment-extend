@@ -3,13 +3,15 @@
  */
 "use strict";
 
-var Segmentation = function( segmentType,  newsletter_id, options )
+var Segmentation = function( segmentationCallback, options )
 {
     var $ = jQuery ;
     var self = this ;
 
     var config = {
         segmentNamePrefix: 'DF-',
+        segmentType: null,
+        newsletter_id: null,
     };
     if( options )
         for( var i in options )
@@ -17,6 +19,17 @@ var Segmentation = function( segmentType,  newsletter_id, options )
             console.debug( i, options[i] );
             config[i] = options[i] ;
         };
+
+    if( ! config.segmentType )
+    {
+        alert('ERROR segmentType invalid');
+        return ;
+    }
+    if( ! config.newsletter_id )
+    {
+        alert('ERROR newsletter_id invalid');
+        return ;
+    }
 
     /**
      * Un ensemble de segments
@@ -78,8 +91,11 @@ var Segmentation = function( segmentType,  newsletter_id, options )
     {
         $(document.body).append( ''
             +'<div id="mpsegex" class="hidden">'
+            +' <p>À partir de la liste: "<b>'+config.newsletter_label+'</b>"</p>'
+            +' <p>Nom du segment: <input class="segment_name" type="text" size="30" value="" />'
+            +'  <span class="segment_name_generate dashicons dashicons-admin-generic" title="Générer un nom de segment"></span></p>'
             +' <p>Pour qu’un·e abonné·e soit sélectionné·e il faut que tous les "ensembles de choix" soient "vrais".<br/>'
-            +' Un "ensemble de choix" est "vrai" quand une des propositions qu’il contient est "vraie".</p>'
+            +'  Un "ensemble de choix" est "vrai" quand une des propositions qu’il contient est "vraie".</p>'
             +' <div class="segmentation">'
             +' </div>'
             +'</div>'
@@ -114,8 +130,16 @@ var Segmentation = function( segmentType,  newsletter_id, options )
             });
         $modal.dialog('open');
 
+        $('.segment_name_generate', $modal ).on('click',function()
+        {
+            var dateStr = (new Date()).toISOString().replace(/^(.*)T(.*)\.\d+Z$/, '$1 $2');
+            var segment_name = config.segmentNamePrefix + dateStr;
+            $('.segment_name',$modal).val(segment_name);
+        })
+        .trigger('click');
+
         $container = $('.segmentation', $modal)
-        
+
         var ajax_data = {
             'action': 'getMPCustomFields',
         };
@@ -152,6 +176,15 @@ var Segmentation = function( segmentType,  newsletter_id, options )
         var fieldsValid = true ;
         var segments_data = [];
 
+        var segment_name = $('.segment_name', $('#mpsegex')).val();
+        console.debug('segment_name:',segment_name);
+        if( ! segment_name || segment_name.length < 10 )
+        {
+            alert('Nom du segment invalide. Il doit faire au moins 10 caractères');
+            $('.segment_name', $('#mpsegex')).focus();
+            return ;
+        }
+
         // Iterate segments then their customFields,
         // check if they are valid,
         // and fill segments_data.
@@ -179,7 +212,8 @@ var Segmentation = function( segmentType,  newsletter_id, options )
             return ;
         //console.debug('segments_data', segments_data );
 
-        var segment_name = config.segmentNamePrefix + new Date().valueOf();
+        //var dateStr = (new Date()).toISOString().replace(/^(.*)T(.*)\.\d+Z$/, '$1 $2');
+        //segment_name = config.segmentNamePrefix + dateStr;
         var segment_desc = 'Bla bla bla';
 
         var token = window.mailpoet_token ;
@@ -192,12 +226,15 @@ var Segmentation = function( segmentType,  newsletter_id, options )
             method: 'save',
             data: {
                 name: segment_name,
-                newsletter_id: newsletter_id,
                 description: segment_desc,
-                segmentType: segmentType,
                 segments: segments_data,
+                newsletter_id: config.newsletter_id,
+                segmentType: config.segmentType
             }
         };
+
+        console.debug('ajax_data:', ajax_data );
+
         $.ajax( ajaxurl,
             {
                 method: 'POST',

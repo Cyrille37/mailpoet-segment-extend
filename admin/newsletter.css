@@ -16,6 +16,13 @@
  * Segmentation popup
  */
 
+#mpsegex p {
+    margin-top: 0;
+}
+
+#mpsegex .segment_name_generate {
+    cursor: pointer;
+}
 #mpsegex .segmentation .segment {
     border: black solid 2px ;
     border-radius: 12px;

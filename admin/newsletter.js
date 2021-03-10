@@ -9,8 +9,6 @@ jQuery(function($)
 {
     //console.debug('ajaxurl: ' + ajaxurl);
     console.debug('mpSegEx: ', mpSegEx);
-    var segmentType = mpSegEx.segmentType ;
-    var newsletter_id = mpSegEx.newsletter_id ;
     var nl_lists_ids = mpSegEx.nl_lists_ids ;
 /*
     // Search for
@@ -84,8 +82,21 @@ jQuery(function($)
         var $btNewSeg = $('<button type="button" class="mailpoet-button" disabled>Créer une segmentation</button>')
             .on('click', function()
             {
+                var selected = $mp_segments.find('option:selected') ;
+                if( selected.length != 1 )
+                {
+                    alert('ERROR invalid ');
+                    return ;
+                }
+                var nl_id = $(selected[0]).val() ;
+                var nl_label = $(selected[0]).data('ml-label') ;
                 // Launch Segmentation Dialog:
-                new Segmentation( segmentType,  newsletter_id, {segmentNamePrefix: mpSegEx.segmentNamePrefix });
+                new Segmentation( segmentationCallback, {
+                    segmentNamePrefix: mpSegEx.segmentNamePrefix,
+                    segmentType: mpSegEx.segmentType,
+                    newsletter_id: nl_id, 
+                    newsletter_label: nl_label,
+                });
             })
             .appendTo( $('.form-field-row-segments', $mpnl ));
 
@@ -97,9 +108,16 @@ jQuery(function($)
                 console.debug(data);
                 console.debug( 'select() option:selected:', $mp_segments.find('option:selected').length );
                 if( $mp_segments.find('option:selected').length == 1 )
+                {
+                    var selected = $mp_segments.find('option:selected') ;
+                    selected.data('ml-label', data.text );
                     $btNewSeg.prop('disabled',false);
+                }
                 else
                     $btNewSeg.prop('disabled',true);
+/*console.debug('selected:',selected[0],
+    'val:', $(selected[0]).val(),
+    'id:', selected[0].id, 'label:', selected[0].text);*/
             })
             .on('select2:unselect', function( ev )
             {
@@ -111,5 +129,9 @@ jQuery(function($)
             })
 
     }
-        
+
+    function segmentationCallback()
+    {
+
+    }
 });

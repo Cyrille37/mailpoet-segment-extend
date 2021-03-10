@@ -11,7 +11,7 @@ use MailPoet\Entities\SegmentEntity ;
 
 class Admin extends WPPlugin
 {
-    const SEG_NAME_PREFIX = 'DF-';
+    const SEG_NAME_PREFIX = 'Mailing ';
 
     /**
      * Admin part of the plugin initializes some stuffs according to the context...
