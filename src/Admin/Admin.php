@@ -84,8 +84,7 @@ class Admin extends WPPlugin
 
         $name = self::PLUGIN_NAME.'-newsletter' ;
 
-        // load jquery-ui with "humanity" theme.
-
+        // jquery-ui with "humanity" theme.
         wp_register_style('jquery-ui-humanity', self::$asset_url_admin.'jquery-ui-1.12.1.humanity/jquery-ui.theme.min.css',
             ['wp-jquery-ui-dialog'],
             '1.12.1', 'all');

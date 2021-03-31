@@ -7,7 +7,7 @@ class WPPlugin
     const PLUGIN_NAME = 'mp-segex' ;
     const VERSION = '1.0' ;
 
-    protected static $debug ;
+    protected static $debug = null ;
 
     protected static $plugin_dir ;
     protected static $plugin_dir_url ;
@@ -74,6 +74,8 @@ class WPPlugin
 
     public static function debug( ...$items )
     {
+        if( self::$debug == null )
+            self::$debug = (defined('WP_DEBUG') ? WP_DEBUG : false);
         if( ! self::$debug )
             return ;
 
