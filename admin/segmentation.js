@@ -5,6 +5,8 @@
 
 var Segmentation = function( segmentationCallback, options )
 {
+    console.debug('Segmentation loading...');
+
     var $ = jQuery ;
     var self = this ;
 
@@ -91,6 +93,7 @@ var Segmentation = function( segmentationCallback, options )
     {
         $(document.body).append( ''
             +'<div id="mpsegex" class="hidden">'
+            +' <div class="loader hidden"><img src="/wp-content/plugins/mailpoet-segment-extend/admin/loader.gif" /></div>'
             +' <p>À partir de la liste: "<b>'+config.newsletter_label+'</b>"</p>'
             +' <p>Nom du segment: <input class="segment_name" type="text" size="30" value="" />'
             +'  <span class="segment_name_generate dashicons dashicons-admin-generic" title="Générer un nom de segment"></span></p>'
@@ -120,7 +123,7 @@ var Segmentation = function( segmentationCallback, options )
                         $(this).dialog('close');
                     },
                     'Enregistrer le segment': function() {
-                        self.saveSegmentation();
+                        self.saveSegmentation( $modal );
                     }
                 },
                 open: function( event, ui )
@@ -171,7 +174,7 @@ var Segmentation = function( segmentationCallback, options )
      * Create the MailPoet Dynamic Segment
      * at 'dynamic_segments' MP ajax endpoint.
      */
-    this.saveSegmentation = function()
+    this.saveSegmentation = function( $modal )
     {
         var segments_data = [];
 
@@ -184,7 +187,7 @@ var Segmentation = function( segmentationCallback, options )
             return ;
         }
 
-        // Iterate segments then their customFields,
+        // Iterate segments and their customFields,
         // check if they are valid,
         // and fill segments_data.
         var fieldsValid = true ;
@@ -215,7 +218,8 @@ var Segmentation = function( segmentationCallback, options )
 
         //var dateStr = (new Date()).toISOString().replace(/^(.*)T(.*)\.\d+Z$/, '$1 $2');
         //segment_name = config.segmentNamePrefix + dateStr;
-        var segment_desc = 'Bla bla bla';
+
+        var segment_desc = 'Segmentation créée le ' + (new Date()).toISOString().replace(/^(.*)T(.*)\.\d+Z$/, '$1 $2') ;
 
         var token = window.mailpoet_token ;
 
@@ -248,6 +252,11 @@ var Segmentation = function( segmentationCallback, options )
             .done(function( data )
             {
                 console.debug('ajax success.', data);
+                $modal.dialog('close');
+                
+                //segmentationCallback( data );
+                setTimeout( segmentationCallback, 50, data );
+
             })
             .fail(function( jqXHR, textStatus, errorThrown )
             {

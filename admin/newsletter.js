@@ -3,7 +3,7 @@
  */
 "use strict";
 
-console.debug('newsletter.js');
+console.debug('newsletter.js is here ;-)');
 
 jQuery(function($)
 {
@@ -31,6 +31,8 @@ jQuery(function($)
 */
 
     var $mpnl = $('#mailpoet_newsletter');
+    // Button to create a Segmentation
+    var $btNewSeg = null ;
 
     /**
      * Observe the DOM to wait MailPoet React initialization,
@@ -49,7 +51,8 @@ jQuery(function($)
                     if( jQuery( this ).hasClass( "form-field-row-segments" ) )
                     {
                         self.disconnect();
-                        hackNl();
+                        setTimeout( hackNl, 10);
+                        //hackNl();
                     }
                 });
             });    
@@ -76,10 +79,11 @@ jQuery(function($)
             if( nl_lists_ids.indexOf( $el.val() ) < 0 )
                 $el.remove();
         });
+        $mp_segments.val(null);// remove selection
         $mp_segments.trigger('change');
 
-        // Button to create a Segmentation
-        var $btNewSeg = $('<button type="button" class="mailpoet-button" disabled>Créer une segmentation</button>')
+        $btNewSeg = $('<button type="button" class="mailpoet-button" disabled>Créer une segmentation</button>')
+            .appendTo( $('.form-field-row-segments', $mpnl ))
             .on('click', function()
             {
                 var selected = $mp_segments.find('option:selected') ;
@@ -88,8 +92,10 @@ jQuery(function($)
                     alert('ERROR invalid ');
                     return ;
                 }
-                var nl_id = $(selected[0]).val() ;
-                var nl_label = $(selected[0]).data('ml-label') ;
+                var $selected = $(selected[0]);
+                console.debug( '$selected:', $selected, 'data:', $selected.data() );
+                var nl_id = $selected.val() ;
+                var nl_label = $selected.data('ml-label') ;
                 // Launch Segmentation Dialog:
                 new Segmentation( segmentationCallback, {
                     segmentNamePrefix: mpSegEx.segmentNamePrefix,
@@ -98,9 +104,9 @@ jQuery(function($)
                     newsletter_label: nl_label,
                 });
             })
-            .appendTo( $('.form-field-row-segments', $mpnl ));
+            ;
 
-        // Disable or not the button upon newsletter segements selection
+        // Disable or not the button upon newsletter segments selection
         $mp_segments
             .on('select2:select', function( ev )
             {
@@ -130,8 +136,43 @@ jQuery(function($)
 
     }
 
-    function segmentationCallback()
+    /**
+     * Callback called by Segmentation dialog.
+     * segmentData : {
+        created_at: "2021-03-31 17:15:31"
+        deleted_at: null
+        ​​description: "Segmentation créée le 2021-03-31 15:15:29"
+        id: "30"
+        name: "Mailing 2021-03-31 15:15:23"
+        newsletter_id: "5"
+        segmentType: "customField"
+        segments: Array [ (1) […] ]
+        type: "dynamic"
+        updated_at: "2021-03-31 17:15:31"
+        }
+     */
+    function segmentationCallback( segmentData )
     {
+        var $mp_segments = $('#mailpoet_segments');
 
+        console.debug('segmentData:',segmentData,'$mp_segments',$mp_segments);
+
+        // Remove previous selection
+        /*$mp_segments.val(null)
+            .trigger('change')
+            ;*/
+        // Add new Segmentation as the only one selected item
+        var newOption = new Option( segmentData.name, segmentData.id, true, true);
+        $mp_segments.append(newOption)
+            // Uncaught TypeError: item is undefined
+            //.trigger('change')
+            ;
+$mp_segments.val(segmentData.id)
+            .trigger('change')
+            ;
+
+        // Disable "New segmentation" button
+        $btNewSeg.prop('disabled',true);
     }
+
 });
