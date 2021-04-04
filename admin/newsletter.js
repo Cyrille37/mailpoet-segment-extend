@@ -9,7 +9,14 @@ jQuery(function($)
 {
     //console.debug('ajaxurl: ' + ajaxurl);
     console.debug('mpSegEx: ', mpSegEx);
-    var nl_lists_ids = mpSegEx.nl_lists_ids ;
+
+    // construit un index des segments contenus dans window.mailpoet_segments.
+    var segments = {};
+    window.mailpoet_segments.forEach( function(seg)
+    {
+        segments[seg.id] = seg ;
+    });
+
 /*
     // Search for
     // <button type="button" class="mailpoet-button" data-automation-id="email-submit"><span>Send</span></button>
@@ -73,13 +80,31 @@ jQuery(function($)
         "nl_lists_ids" built by Artefacts\Mailpoet\Segment\Admin\Admin::wp_admin_enqueue_scripts_newsletter()
         */
         var $mp_segments = $('#mailpoet_segments');
+        //$mp_segments.val(null);// remove selection
+        console.debug( 'selection:', $mp_segments.val() );
+        var curSel = $mp_segments.val() ;
         $mp_segments.find('option').each(function(idx,el)
         {
             var $el = $(el);
-            if( nl_lists_ids.indexOf( $el.val() ) < 0 )
-                $el.remove();
+            console.debug( 'el.data:', $el.data(), el.attributes );
+
+            if( $el.val() == curSel )
+                return ;
+            if( segments[$el.val()].type != 'dynamic' )
+                return ;
+            $el.remove();
         });
-        $mp_segments.val(null);// remove selection
+
+        /*
+        Ça plante plus tard si on met à jour le tableau window.mailpoet_segments
+        console.debug('segments:', window.mailpoet_segments);
+        window.mailpoet_segments = window.mailpoet_segments.filter(function(value, index, arr){ 
+            if( nl_lists_ids.indexOf( value.id ) >= 0 )
+                return true ;
+        });
+        console.debug('segments:',window.mailpoet_segments);
+        */
+
         $mp_segments.trigger('change');
 
         $btNewSeg = $('<button type="button" class="mailpoet-button" disabled>Créer une segmentation</button>')
@@ -95,7 +120,7 @@ jQuery(function($)
                 var $selected = $(selected[0]);
                 console.debug( '$selected:', $selected, 'data:', $selected.data() );
                 var nl_id = $selected.val() ;
-                var nl_label = $selected.data('ml-label') ;
+                var nl_label = segments[nl_id].name ;
                 // Launch Segmentation Dialog:
                 new Segmentation( segmentationCallback, {
                     segmentNamePrefix: mpSegEx.segmentNamePrefix,
@@ -106,38 +131,38 @@ jQuery(function($)
             })
             ;
 
-        // Disable or not the button upon newsletter segments selection
+        /**
+         * Disable or not the button upon newsletter segments selection
+         */
         $mp_segments
-            .on('select2:select', function( ev )
+            .on('select2:select select2:unselect', function()
             {
-                var data = ev.params.data;
-                console.debug(data);
-                console.debug( 'select() option:selected:', $mp_segments.find('option:selected').length );
-                if( $mp_segments.find('option:selected').length == 1 )
+                var $selected = $mp_segments.find('option:selected') ;
+                console.debug( 'option:selected:', $selected.length, $selected );
+                if( $selected.length != 1 )
                 {
-                    var selected = $mp_segments.find('option:selected') ;
-                    selected.data('ml-label', data.text );
-                    $btNewSeg.prop('disabled',false);
+                    $btNewSeg.prop('disabled',true);
+                    return ;
+                }
+                $selected = $($selected[0]);
+    
+                if( segments[ $selected.val() ].type == 'dynamic' )
+                {
+                    $btNewSeg.prop('disabled',true);
                 }
                 else
-                    $btNewSeg.prop('disabled',true);
-/*console.debug('selected:',selected[0],
-    'val:', $(selected[0]).val(),
-    'id:', selected[0].id, 'label:', selected[0].text);*/
-            })
-            .on('select2:unselect', function( ev )
-            {
-                console.debug( 'unselect() option:selected:', $mp_segments.find('option:selected').length );
-                if( $mp_segments.find('option:selected').length == 1 )
+                {
                     $btNewSeg.prop('disabled',false);
-                else
-                    $btNewSeg.prop('disabled',true);
-            })
+                }
+    
+            });
 
     }
 
     /**
      * Callback called by Segmentation dialog.
+     * Update the list selectbox with the freshly created segment.
+     * 
      * segmentData : {
         created_at: "2021-03-31 17:15:31"
         deleted_at: null
@@ -157,19 +182,25 @@ jQuery(function($)
 
         console.debug('segmentData:',segmentData,'$mp_segments',$mp_segments);
 
+        /*
+        // Uncaught TypeError: item is undefined
         // Remove previous selection
-        /*$mp_segments.val(null)
-            .trigger('change')
-            ;*/
+        //$mp_segments.val(null).trigger('change');
         // Add new Segmentation as the only one selected item
         var newOption = new Option( segmentData.name, segmentData.id, true, true);
-        $mp_segments.append(newOption)
-            // Uncaught TypeError: item is undefined
-            //.trigger('change')
-            ;
-$mp_segments.val(segmentData.id)
-            .trigger('change')
-            ;
+        //newOption = $('<option value="'+segmentData.id+'">'+segmentData.name+'</option>');
+        $mp_segments.select2().append( newOption);.trigger('change');
+        */
+
+        if( segments[segmentData.id] === undefined )
+        {
+            segments[segmentData.id] = segmentData;
+            window.mailpoet_segments.push(segmentData);
+            $mp_segments.trigger('change');
+        }
+
+        $mp_segments.val(segmentData.id)
+            .trigger('change');
 
         // Disable "New segmentation" button
         $btNewSeg.prop('disabled',true);

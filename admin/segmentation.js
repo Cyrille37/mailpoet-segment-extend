@@ -253,10 +253,7 @@ var Segmentation = function( segmentationCallback, options )
             {
                 console.debug('ajax success.', data);
                 $modal.dialog('close');
-                
-                //segmentationCallback( data );
-                setTimeout( segmentationCallback, 50, data );
-
+                segmentationCallback( data.data );
             })
             .fail(function( jqXHR, textStatus, errorThrown )
             {

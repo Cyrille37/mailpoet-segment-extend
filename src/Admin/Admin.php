@@ -63,22 +63,37 @@ class Admin extends WPPlugin
 
     public function wp_admin_enqueue_scripts_newsletter()
     {
-        $mp = \MailPoet\API\API::MP('v1');
+        //$mp = \MailPoet\API\API::MP('v1');
 
         /**
          * Les listes et segments "normaux" : on vire ceux générés par ce plugin.
+         * 
+            array (
+            'id' => '5', 'name' => 'the Big one',
+            'type' => 'default',
+            'description' => '',
+            'created_at' => '2021-02-18 13:38:25','updated_at' => '2021-02-18 13:38:25','deleted_at' => NULL,
+            ) 
+            array (
+            'id' => '62', 'name' => 'Mailing 2021-04-01 10:17:25',
+            'type' => 'dynamic',
+            'description' => 'Segmentation créée le 2021-04-01 10:17:33',
+            'created_at' => '2021-04-01 12:17:35','updated_at' => '2021-04-01 12:17:35','deleted_at' => NULL,
+            )
+         * 
          * @var Array $nl_lists_ids
          */
         $nl_lists_ids = [] ;
-        foreach( Segment
+        /*foreach( Segment
                     ::whereIn('type', [SegmentEntity::TYPE_DEFAULT, SegmentEntity::TYPE_DYNAMIC])
                     ->whereNull('deleted_at')
             ->findArray() as $nl )
         {
+            WPPlugin::debug(__METHOD__,$nl);
             if( substr($nl['name'], 0, strlen(self::SEG_NAME_PREFIX)) == self::SEG_NAME_PREFIX )
                 continue ;
             $nl_lists_ids[] = $nl['id'] ;
-        }
+        }*/
 
         $wp_scripts = wp_scripts();
 
@@ -108,8 +123,7 @@ class Admin extends WPPlugin
         [
             'segmentType' => \MailPoet\DynamicSegments\Filters\CustomFieldFilter::SEGMENT_TYPE ,
             'segmentNamePrefix' => self::SEG_NAME_PREFIX,
-            'newsletter_id' => 5,
-            'nl_lists_ids' => $nl_lists_ids,
+            //'nl_lists_ids' => $nl_lists_ids,
         ]);
     }
 }
